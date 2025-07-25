@@ -1,7 +1,7 @@
 {
   "name": "levaic-admin",
   "private": true,
-  "version": "1.4.1",
+  "version": "1.0.0",
   "type": "module",
   "homepage": "https://turkuvazsoftware.github.io/levaic-admin",
   "scripts": {
