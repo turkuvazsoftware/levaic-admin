@@ -16,18 +16,16 @@ import './assets/scss/custom.scss'
 import './assets/scss/customizer.scss'
 import './assets/scss/rtl.scss'
 
-import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+import { RouterProvider, createHashRouter } from 'react-router-dom';
 import { IndexRouter } from './router/indexRouter';
 
-const router = createBrowserRouter (
+const router = createHashRouter (
   [
     ...IndexRouter
   ], {
-    basename: import.meta.env.BASE_URL
-    
+    basename: import.meta.env.MODE === 'production' ?  "/levaic-admin/" || '/' : '/',
   }
 )
-// console.log(import.meta.env.BASE_URL);
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <Provider store={store}>
