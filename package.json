@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.4.1",
   "type": "module",
+  "homepage": "https://turkuvazsoftware.github.io/levaic-admin",
   "scripts": {
     "start": "npm run dev",
     "dev": "vite --port 3000",
