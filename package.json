@@ -40,6 +40,7 @@
     "react-redux": "^9.1.0",
     "react-router-dom": "^6.21.1",
     "react-select": "^5.7.2",
+    "react-toastify": "^11.0.5",
     "sass": "^1.69.5",
     "select2": "^4.1.0-rc.0",
     "smooth-scrollbar": "^8.8.4",
