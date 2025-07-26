@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { login } from '../../store/auth/actions';
 import { toast } from 'react-toastify';
+import * as storage from "../../utilities/storage"
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -16,8 +17,8 @@ const Login = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const savedEmail = localStorage.getItem('rememberEmail');
-        const savedPassword = localStorage.getItem('rememberPassword');
+        const savedEmail = storage.getItem('rememberEmail');
+        const savedPassword = storage.getItem('rememberPassword');
 
         if (savedEmail && savedPassword) {
             setEmail(savedEmail);
@@ -40,11 +41,11 @@ const Login = () => {
             dispatch(login({ user, token }));
 
             if (rememberMe) {
-                localStorage.setItem('rememberEmail', email);
-                localStorage.setItem('rememberPassword', password);
+                storage.setItem('rememberEmail', email);
+                storage.setItem('rememberPassword', password);
             } else {
-                localStorage.removeItem('rememberEmail');
-                localStorage.removeItem('rememberPassword');
+                storage.removeItem('rememberEmail');
+                storage.removeItem('rememberPassword');
             }
 
             toast.success("Giriş başarılı, yönlendiriliyorsunuz...", { autoClose: 1500 });
@@ -61,11 +62,11 @@ const Login = () => {
             dispatch(login({ user, token }));
 
             if (rememberMe) {
-                localStorage.setItem('rememberEmail', email);
-                localStorage.setItem('rememberPassword', password);
+                storage.setItem('rememberEmail', email);
+                storage.setItem('rememberPassword', password);
             } else {
-                localStorage.removeItem('rememberEmail');
-                localStorage.removeItem('rememberPassword');
+                storage.removeItem('rememberEmail');
+                storage.removeItem('rememberPassword');
             }
 
             toast.success("Giriş başarılı, yönlendiriliyorsunuz...", { autoClose: 1500 });
