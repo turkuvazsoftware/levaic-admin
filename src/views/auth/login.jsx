@@ -47,10 +47,7 @@ const Login = () => {
                 localStorage.removeItem('rememberPassword');
             }
 
-
-            toast.success("Giriş başarılı, yönlendiriliyorsunuz...", {
-                autoClose: 1500,
-            });
+            toast.success("Giriş başarılı, yönlendiriliyorsunuz...", { autoClose: 1500 });
             setTimeout(() => {
                 navigate('/');
             }, 2000);
@@ -61,7 +58,6 @@ const Login = () => {
             const user = { id: 2, name: 'Consultant', image: 'https://media.licdn.com/dms/image/v2/C4E03AQEhUL_IViE7hQ/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1631539391760?e=2147483647&v=beta&t=48giSHIJzxdOxCZPra6z1jN-LXvh3D6LHwgC2F9jKCk', role: 'consultant' };
             const token = generateToken();
 
-            setTimeout(() => toast.success("Giriş başarılı yönlendiriliyorsunuz..."), 1000)
             dispatch(login({ user, token }));
 
             if (rememberMe) {
@@ -72,12 +68,10 @@ const Login = () => {
                 localStorage.removeItem('rememberPassword');
             }
 
-            toast.success("Giriş başarılı, yönlendiriliyorsunuz...", {
-                autoClose: 1500,
-            });
+            toast.success("Giriş başarılı, yönlendiriliyorsunuz...", { autoClose: 1500 });
             setTimeout(() => {
                 navigate('/');
-            }, 1500);
+            }, 2000);
             return;
         }
 
