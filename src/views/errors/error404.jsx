@@ -22,8 +22,8 @@ const Error404 = () => {
                     <div className="row flex-column justify-content-center align-items-center vh-100">
                         <div>
                             <Image src={e404} className="img-fluid mb-4" alt="400" loading="lazy"/> 
-                            <p className="mt-5 text-center text-body">The Page You Requested Could Not Be Found Please Go <br />Back To Homepage</p>
-                            <Link to="/" className="mt-3 btn bg-primary text-white text-center">Back to Home</Link>
+                            <p className="mt-5 text-center text-body">İstediğiniz Sayfa Bulunamadı</p>
+                            <Link to="/" className="mt-3 btn bg-primary text-white text-center">Geri Dön</Link>
                         </div>
                     </div>
                 </div>
