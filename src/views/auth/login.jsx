@@ -6,6 +6,7 @@ import { useDispatch } from 'react-redux';
 import { login } from '../../store/auth/actions';
 import { toast } from 'react-toastify';
 import * as storage from "../../utilities/storage"
+import appAxios from "../../utilities/appAxios"
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -27,19 +28,27 @@ const Login = () => {
         }
     }, []);
 
-    const generateToken = () => {
-        return Math.random().toString(36).substring(2);
-    };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (email === 'admin@gmail.com' && password === '123456') {
-            const user = { id: 1, name: 'Admin', image: 'https://media.licdn.com/dms/image/v2/C4E03AQEhUL_IViE7hQ/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1631539391760?e=2147483647&v=beta&t=48giSHIJzxdOxCZPra6z1jN-LXvh3D6LHwgC2F9jKCk', role: 'admin' };
-            const token = generateToken();
+        const params = new URLSearchParams();
+        params.append("email", email);
+        params.append("password", password);
 
-            dispatch(login({ user, token }));
+        const response = await appAxios.post("/login.php", params.toString());
 
+        if (response.data.success) {
+            const user = {
+                id: response.data.user_id,
+                name: response.data.name,
+                email: response.data.email,
+                phone: response.data.phone,
+                role: response.data.role, 
+                birth_date: response.data.birth_date
+            };
+
+            dispatch(login({ user }));
             if (rememberMe) {
                 storage.setItem('rememberEmail', email);
                 storage.setItem('rememberPassword', password);
@@ -53,30 +62,9 @@ const Login = () => {
                 navigate('/');
             }, 2000);
             return;
+        } else {
+            toast.error(response.data.message || "Email veya şifre hatalı");
         }
-
-        if (email === 'consultant@gmail.com' && password === '654321') {
-            const user = { id: 2, name: 'Consultant', image: 'https://media.licdn.com/dms/image/v2/C4E03AQEhUL_IViE7hQ/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1631539391760?e=2147483647&v=beta&t=48giSHIJzxdOxCZPra6z1jN-LXvh3D6LHwgC2F9jKCk', role: 'consultant' };
-            const token = generateToken();
-
-            dispatch(login({ user, token }));
-
-            if (rememberMe) {
-                storage.setItem('rememberEmail', email);
-                storage.setItem('rememberPassword', password);
-            } else {
-                storage.removeItem('rememberEmail');
-                storage.removeItem('rememberPassword');
-            }
-
-            toast.success("Giriş başarılı, yönlendiriliyorsunuz...", { autoClose: 1500 });
-            setTimeout(() => {
-                navigate('/');
-            }, 2000);
-            return;
-        }
-
-        toast.error('Email veya şifre hatalı!');
     };
 
     return (

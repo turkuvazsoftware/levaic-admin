@@ -2,81 +2,37 @@ import React, { useState, useEffect } from 'react'
 import { Row, Col, Tab, Nav, Button, Table, Modal, Form } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import Pagination from '../components/pagination'
-import Editor from '../components/editor'
 import Card from '../components/bootstrap/card'
 import { useSelector } from 'react-redux';
 import appAxios from "../utilities/appAxios"
 import { toast } from 'react-toastify';
 import Swal from "sweetalert2";
-import Select from 'react-select';
 
 
-const Blog = () => {
+const Category = () => {
 
-    const [blogList, setBlogList] = useState([]);
     const [categoryList, setCategoryList] = useState([]);
-    const [tagList, setTagList] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
-    const [title, setTitle] = useState('');
-    const [subTitle, setSubTitle] = useState('');
-    const [content, setContent] = useState('');
-    const [imageUrl, setImageUrl] = useState('');
-    const [categoryId, setCategoryId] = useState('');
-    const [tagIds, setTagIds] = useState([]);
+    const [name, setName] = useState('');
 
     const [updateId, setUpdateId] = useState('');
-    const [updateTitle, setUpdateTitle] = useState('');
-    const [updateSubTitle, setUpdateSubTitle] = useState('');
-    const [updateContent, setUpdateContent] = useState('');
-    const [updateImageUrl, setUpdateImageUrl] = useState('');
-    const [updateCategoryId, setUpdateCategoryId] = useState('');
-    const [updateTagIds, setUpdateTagIds] = useState([]);
-
-    const userRole = useSelector(state => state.auth.user?.role);
-    const userId = useSelector(state => state.auth.user?.id);
-
-    const fetchBlogs = async () => {
-        const params = new URLSearchParams();
-        if (userRole !== "admin") {
-            params.append("user_id", userId);
-        }
-
-        const response = await appAxios.get("/articles.php?" + params.toString());
-
-        if (response.data.success) {
-            setBlogList(response.data.data);
-        } else {
-            setError(response.data.message || 'Veri alınamadı.');
-        }
-    };
+    const [updateName, setUpdateName] = useState('');
 
     const fetchCategories = async () => {
-        const params = new URLSearchParams();
         const response = await appAxios.get("/get_categories.php");
 
         if (response.data.success) {
-            setCategoryList(response.data.data.map(x => ({ label: x.name, value: parseInt(x.id) })));
+            setCategoryList(response.data.data);
         } else {
             setError(response.data.message || 'Veri alınamadı.');
         }
     };
-
-    const fetchTags = async () => {
-        const response = await appAxios.get("/get_tags.php");
-
-        if (response.data.success) {
-            setTagList(response.data.data.map(x => ({ label: x.name, value: parseInt(x.id) })));
-        } else {
-            setError(response.data.message || 'Veri alınamadı.');
-        }
-    };
-
 
     useEffect(() => {
-        Promise.all([fetchBlogs(), fetchTags(), fetchCategories()])
+        Promise.all([fetchCategories()])
     }, []);
 
-    const itemsPerPage = 5;
+    const itemsPerPage = 10;
     const [currentPage, setCurrentPage] = useState(1);
 
     const startPage = (currentPage - 1) * itemsPerPage;
@@ -86,53 +42,42 @@ const Blog = () => {
 
     const [show1, setShow1] = useState(false);
     const handleClose1 = () => {
+        setUpdateName("")
         setShow1(false)
     };
     const handleShow1 = (item) => {
         setUpdateId(item.id)
-        setUpdateTitle(item.title)
-        setUpdateSubTitle(item.subtitle)
-        setUpdateContent(item.content)
-        setUpdateImageUrl(item.image_url)
-        setUpdateCategoryId(categoryList.find(x => x.value === item.category_id))
-        setUpdateTagIds(item.tags.map(x => ({ label: x.name, value: parseInt(x.id) })));
+        setUpdateName(item.name)
         setShow1(true)
     };
 
-    const filteredBlogs = blogList.filter((blog) =>
-        blog.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        blog.subtitle.toLowerCase().includes(searchQuery.toLowerCase())
+    const filteredCategories = categoryList.filter((category) =>
+        category.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-
-    const handleSaveBlog = async () => {
-        if (!title || !subTitle || !content || !categoryId) {
+    const handleSaveCategory = async () => {
+        if (!name) {
             toast.error("Tüm alanları doldurun!");
             return;
         }
 
         const params = new URLSearchParams();
-        params.append("user_id", userId);
-        params.append("title", title);
-        params.append("subtitle", subTitle);
-        params.append("content", content);
-        params.append("image_url", imageUrl);
-        params.append("category_id", categoryId.value);
-        params.append("tagIds", JSON.stringify(tagIds.map(x => x.value)));
+        params.append("name", name);
 
-        const response = await appAxios.post("/create_articles.php", params.toString());
+        const response = await appAxios.post("/create_category.php", params.toString());
 
         if (response.data.success) {
-            toast.success("Blog başarıyla eklendi!");
-            fetchBlogs();
+            toast.success("Kategori başarıyla eklendi!");
+            fetchCategories();
             handleClose();
-            setTitle(''); setSubTitle(''); setContent(''); setImageUrl(''); setCategoryId(''); setTagIds([]);
+            setName('');
         } else {
             toast.error(response.data.message || "Kayıt sırasında hata oluştu.");
         }
+
     };
 
-    const handleDeleteBlog = async (id) => {
+    const handleDeleteCategory = async (id) => {
         Swal.fire({
             title: "Emin misin?",
             text: "Bu kaydı silmek istiyor musun?",
@@ -147,11 +92,11 @@ const Blog = () => {
                 const params = new URLSearchParams();
                 params.append("id", id);
 
-                const response = await appAxios.post("/delete_articles.php", params.toString());
+                const response = await appAxios.post("/delete_category.php", params.toString());
 
                 if (response.data.success) {
-                    toast.success("Blog başarıyla silindi!");
-                    fetchBlogs();
+                    toast.success("Kategori başarıyla silindi!");
+                    fetchCategories();
                 } else {
                     toast.error(response.data.message || "Silme işlemi başarısız.");
                 }
@@ -161,26 +106,23 @@ const Blog = () => {
 
     };
 
-    const handleUpdateBlog = async () => {
-        if (!updateTitle || !updateSubTitle || !updateContent ||  !updateCategoryId) {
+
+
+    const handleUpdateCategory = async () => {
+        if (!updateName) {
             toast.error("Tüm alanları doldurun!");
             return;
         }
 
         const params = new URLSearchParams();
         params.append("id", updateId);
-        params.append("title", updateTitle);
-        params.append("subtitle", updateSubTitle);
-        params.append("content", updateContent);
-        params.append("image_url", updateImageUrl);
-        params.append("category_id", updateCategoryId.value);
-        params.append("tagIds", JSON.stringify(updateTagIds.map(x => x.value)));
+        params.append("name", updateName);
 
-        const response = await appAxios.post("/update_articles.php", params.toString());
+        const response = await appAxios.post("/update_category.php", params.toString());
 
         if (response.data.success) {
-            toast.success("Blog başarıyla güncellendi!");
-            fetchBlogs();
+            toast.success("Kategori başarıyla güncellendi!");
+            fetchCategories();
             handleClose1();
         } else {
             toast.error(response.data.message || "Kayıt sırasında hata oluştu.");
@@ -188,7 +130,7 @@ const Blog = () => {
     };
 
 
-    const currentBlogItems = filteredBlogs.slice(startPage, startPage + itemsPerPage);
+    const currentCategoryItems = filteredCategories.slice(startPage, startPage + itemsPerPage);
     return (
         <>
             <Row>
@@ -198,15 +140,15 @@ const Blog = () => {
                             <div className="card-header">
                                 <Row className="align-items-center gy-3">
                                     <Col md="4" lg="6" className="text-md-start">
-                                        <h4>Bloglar</h4>
+                                        <h4>Kategoriler</h4>
                                     </Col>
                                     <Col md="8" lg="6" className="text-md-end">
                                         <div className="">
-                                            <Nav as="ul" id="blog-table-tab" role="tablist" className="nav nav-tabs d-inline-flex align-items-center gap-3 flex-wrap mb-0 px-0">
+                                            <Nav as="ul" id="category-table-tab" role="tablist" className="nav nav-tabs d-inline-flex align-items-center gap-3 flex-wrap mb-0 px-0">
                                                 <li>
                                                     <Button variant="primary" onClick={handleShow}>
                                                         <span className="btn-inner">
-                                                            <span className="text d-inline-block align-middle">Blog Ekle</span>{" "}
+                                                            <span className="text d-inline-block align-middle">Kategori Ekle</span>{" "}
                                                             <span className="icon d-inline-block align-middle ms-1 ps-2">
                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 8 8" fill="none">
                                                                     <path
@@ -223,7 +165,7 @@ const Blog = () => {
                                 </Row>
                                 <Form.Control
                                     type="text"
-                                    placeholder="Blog Ara"
+                                    placeholder="Kategori Ara"
                                     value={searchQuery}
                                     onChange={(e) => {
                                         setSearchQuery(e.target.value);
@@ -238,20 +180,16 @@ const Blog = () => {
                                     <Table className="table border-end border-start align-middle rounded">
                                         <thead className="table-dark">
                                             <tr>
-                                                <th scope="col">Başlık</th>
-                                                <th scope="col">Alt Başlık</th>
-                                                <th scope="col">Kategori</th>
-                                                <th scope="col">Resim</th>
+                                                <th scope="col">İsim</th>
+                                                <th scope="col">Url İsmi</th>
                                                 <th scope="col">Aksiyon</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {currentBlogItems.map((item, index) => (
+                                            {currentCategoryItems.map((item, index) => (
                                                 <tr data-item="list" key={index}>
-                                                    <td>{item.title}</td>
-                                                    <td>{item.subtitle}</td>
-                                                    <td>{categoryList.find(x => x.value === item.category_id)?.label || item.category_id}</td>
-                                                    <td><a href={item.image_url} target='blank'>Resim</a></td>
+                                                    <td>{item.name}</td>
+                                                    <td>{item.nameforurl}</td>
                                                     <td>
                                                         <a variant="" className="d-inline-block pe-2" onClick={() => handleShow1(item)}>
                                                             <span className="text-success">
@@ -270,7 +208,7 @@ const Blog = () => {
                                                                 </svg>
                                                             </span>
                                                         </a>{" "}
-                                                        <Link to="#" className="d-inline-block ps-2 delete-btn" onClick={() => handleDeleteBlog(item.id)}>
+                                                        <Link to="#" className="d-inline-block ps-2 delete-btn" onClick={() => handleDeleteCategory(item.id)}>
                                                             <span className="text-danger">
                                                                 <svg width="15" height="16" viewBox="0 0 15 16" fill="none"
                                                                     xmlns="http://www.w3.org/2000/svg">
@@ -295,11 +233,11 @@ const Blog = () => {
                                     </Table>
                                 </div>
                                 <Pagination
-                                    totalItems={filteredBlogs.length}
+                                    totalItems={filteredCategories.length}
                                     itemsPerPage={itemsPerPage}
                                     currentPage={currentPage}
                                     onPageChange={(page) => {
-                                        if (page >= 1 && page <= Math.ceil(filteredBlogs.length / itemsPerPage)) {
+                                        if (page >= 1 && page <= Math.ceil(filteredCategories.length / itemsPerPage)) {
                                             setCurrentPage(page);
                                         }
                                     }}
@@ -311,52 +249,26 @@ const Blog = () => {
             </Row>
 
             <Modal
-                size="xl"
                 show={show}
                 onHide={handleClose}
                 backdrop="static"
                 keyboard={false}
             >
                 <Modal.Header closeButton>
-                    <Modal.Title>Blog Ekle</Modal.Title>
+                    <Modal.Title>Kategori Ekle</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <div className="form-group col-md-12">
                         <Form.Group className="mb-3">
-                            <Form.Label>Başlık <span className="text-danger">*</span></Form.Label>
-                            <Form.Control type="text" className="form-control" onChange={(e) => setTitle(e.target.value)}></Form.Control>
-                        </Form.Group>
-
-                        <Form.Group className="mb-3">
-                            <Form.Label>Alt Başlık <span className="text-danger">*</span></Form.Label>
-                            <Form.Control type="text" className="form-control" onChange={(e) => setSubTitle(e.target.value)}></Form.Control>
-                        </Form.Group>
-
-                        <Form.Group className="mb-3">
-                            <Form.Label>İçerik <span className="text-danger">*</span></Form.Label>
-                            <Editor value={content} onChange={setContent}></Editor>
-                        </Form.Group>
-
-                        <Form.Group className="mb-3">
-                            <Form.Label>Resim Linki <span className="text-danger">*</span></Form.Label>
-                            <Form.Control type="text" className="form-control" onChange={(e) => setImageUrl(e.target.value)}></Form.Control>
-                        </Form.Group>
-
-                        <Form.Group className="mb-3">
-                            <Form.Label>Kategori <span className="text-danger">*</span></Form.Label>
-                            <Select options={categoryList} className="js-choice" select="one" onChange={(val) => setCategoryId(val)} />
-                        </Form.Group>
-
-                        <Form.Group className="mb-3">
-                            <Form.Label>Etiketler <span className="text-danger">*</span></Form.Label>
-                            <Select options={tagList} value={tagIds} isMulti className="js-choice" onChange={(val) => setTagIds(val)} />
+                            <Form.Label>İsim <span className="text-danger">*</span></Form.Label>
+                            <Form.Control type="text" className="form-control" onChange={(e) => setName(e.target.value)}></Form.Control>
                         </Form.Group>
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
                     <div className="offcanvas-footer">
                         <div className="d-grid d-md-flex gap-3 p-3">
-                            <Button type="submit" className="btn btn-primary d-block" onClick={handleSaveBlog}>
+                            <Button type="submit" className="btn btn-primary d-block" onClick={handleSaveCategory}>
                                 <span className="btn-inner">
                                     <span className="text d-inline-block align-middle">Kaydet</span>{" "}
                                     <span className="icon d-inline-block align-middle ms-1 ps-2">
@@ -382,52 +294,26 @@ const Blog = () => {
             </Modal>
 
             <Modal
-                size="xl"
                 show={show1}
                 onHide={handleClose1}
                 backdrop="static"
                 keyboard={false}
             >
                 <Modal.Header closeButton>
-                    <Modal.Title>Blog Güncelle</Modal.Title>
+                    <Modal.Title>Kategori Güncelle</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <div className="form-group col-md-12">
                         <Form.Group className="mb-3">
-                            <Form.Label>Başlık  <span className="text-danger">*</span></Form.Label>
-                            <Form.Control type="text" className="form-control" defaultValue={updateTitle} onChange={(e) => setUpdateTitle(e.target.value)}></Form.Control>
-                        </Form.Group>
-
-                        <Form.Group className="mb-3">
-                            <Form.Label>Alt Başlık <span className="text-danger">*</span></Form.Label>
-                            <Form.Control type="text" className="form-control" defaultValue={updateSubTitle} onChange={(e) => setUpdateSubTitle(e.target.value)}></Form.Control>
-                        </Form.Group>
-
-                        <Form.Group className="mb-3">
-                            <Form.Label>İçerik <span className="text-danger">*</span></Form.Label>
-                            <Editor value={updateContent} onChange={setUpdateContent}></Editor>
-                        </Form.Group>
-
-                        <Form.Group className="mb-3">
-                            <Form.Label>Resim Linki <span className="text-danger">*</span></Form.Label>
-                            <Form.Control type="text" className="form-control" defaultValue={updateImageUrl} onChange={(e) => setUpdateImageUrl(e.target.value)}></Form.Control>
-                        </Form.Group>
-
-                        <Form.Group className="mb-3">
-                            <Form.Label>Kategori <span className="text-danger">*</span></Form.Label>
-                            <Select options={categoryList} value={updateCategoryId} className="js-choice" onChange={(val) => setUpdateCategoryId(val)} />
-                        </Form.Group>
-
-                        <Form.Group className="mb-3">
-                            <Form.Label>Etiketler <span className="text-danger">*</span></Form.Label>
-                            <Select options={tagList} value={updateTagIds} isMulti className="js-choice" onChange={(val) => setUpdateTagIds(val)} />
+                            <Form.Label>İsim <span className="text-danger">*</span></Form.Label>
+                            <Form.Control type="text" className="form-control" defaultValue={updateName} onChange={(e) => setUpdateName(e.target.value)}></Form.Control>
                         </Form.Group>
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
                     <div className="offcanvas-footer">
                         <div className="d-grid d-md-flex gap-3 p-3">
-                            <Button type="submit" className="btn btn-primary d-block" onClick={handleUpdateBlog}>
+                            <Button type="submit" className="btn btn-primary d-block" onClick={handleUpdateCategory}>
                                 <span className="btn-inner">
                                     <span className="text d-inline-block align-middle">Güncelle</span>{" "}
                                     <span className="icon d-inline-block align-middle ms-1 ps-2">
@@ -455,4 +341,4 @@ const Blog = () => {
     )
 }
 
-export default Blog
+export default Category

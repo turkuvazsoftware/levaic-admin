@@ -67,10 +67,10 @@ const Header = memo((props) => {
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
-  
+
     const handleLogout = () => {
-      dispatch(logout());
-      navigate('/login');
+        dispatch(logout());
+        navigate('/login');
     };
 
     return (
@@ -114,12 +114,43 @@ const Header = memo((props) => {
                                     aria-expanded="false"
                                 >
                                     <div className="btn-inner d-inline-block position-relative d-flex align-items-center">
-                                        <img
-                                            src={user?.image || "/assets/images/dashboard/dr-dashboard.png"}
-                                            alt="User-Profile"
-                                            className="theme-color-default-img img-fluid avatar avatar-40 avatar-rounded"
-                                            loading="lazy"
-                                        />
+                                        {user?.image ? (
+                                            <img
+                                                src={user.image}
+                                                alt="User-Profile"
+                                                className="theme-color-default-img img-fluid avatar avatar-40 avatar-rounded"
+                                                loading="lazy"
+                                            />
+                                        ) : (
+                                            <div
+                                                className="avatar avatar-40 avatar-rounded theme-color-default-img d-flex align-items-center justify-content-center"
+                                                style={{ backgroundColor: "#fafafe" /* İstersen arka plan rengi */ }}
+                                                data-bs-toggle="tooltip"
+                                                title="Kullanıcılar"
+                                                data-bs-placement="right"
+                                            >
+                                                <svg
+                                                    className="icon-20"
+                                                    width="20"
+                                                    height="20"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                >
+                                                    <path
+                                                        d="M11.997 15.1746C7.684 15.1746 4 15.8546 4 18.5746C4 21.2956 7.661 21.9996 11.997 21.9996C16.31 21.9996 19.994 21.3206 19.994 18.5996C19.994 15.8786 16.334 15.1746 11.997 15.1746Z"
+                                                        fill="currentColor"
+                                                    ></path>
+                                                    <path
+                                                        opacity="0.4"
+                                                        d="M11.9971 12.5838C14.9351 12.5838 17.2891 10.2288 17.2891 7.29176C17.2891 4.35476 14.9351 1.99976 11.9971 1.99976C9.06008 1.99976 6.70508 4.35476 6.70508 7.29176C6.70508 10.2288 9.06008 12.5838 11.9971 12.5838Z"
+                                                        fill="currentColor"
+                                                    ></path>
+                                                </svg>
+                                            </div>
+                                        )}
+
+
                                         <span className="ms-2">{user?.name || "Kullanıcı"}</span>
                                     </div>
                                 </Dropdown.Toggle>

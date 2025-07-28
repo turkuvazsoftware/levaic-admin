@@ -2,78 +2,44 @@ import React, { useState, useEffect } from 'react'
 import { Row, Col, Tab, Nav, Button, Table, Modal, Form } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import Pagination from '../components/pagination'
-import Editor from '../components/editor'
 import Card from '../components/bootstrap/card'
 import { useSelector } from 'react-redux';
 import appAxios from "../utilities/appAxios"
 import { toast } from 'react-toastify';
 import Swal from "sweetalert2";
-import Select from 'react-select';
 
 
-const Blog = () => {
+const User = () => {
 
-    const [blogList, setBlogList] = useState([]);
-    const [categoryList, setCategoryList] = useState([]);
-    const [tagList, setTagList] = useState([]);
+    const [userList, setUserList] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
-    const [title, setTitle] = useState('');
-    const [subTitle, setSubTitle] = useState('');
-    const [content, setContent] = useState('');
-    const [imageUrl, setImageUrl] = useState('');
-    const [categoryId, setCategoryId] = useState('');
-    const [tagIds, setTagIds] = useState([]);
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
+    const [birthDate, setBirthDate] = useState('');
+    const [password, setPassword] = useState('');
 
     const [updateId, setUpdateId] = useState('');
-    const [updateTitle, setUpdateTitle] = useState('');
-    const [updateSubTitle, setUpdateSubTitle] = useState('');
-    const [updateContent, setUpdateContent] = useState('');
-    const [updateImageUrl, setUpdateImageUrl] = useState('');
-    const [updateCategoryId, setUpdateCategoryId] = useState('');
-    const [updateTagIds, setUpdateTagIds] = useState([]);
+    const [updateName, setUpdateName] = useState('');
+    const [updateEmail, setUpdateEmail] = useState('');
+    const [updatePhone, setUpdatePhone] = useState('');
+    const [updateBirthDate, setUpdateBirthDate] = useState('');
 
-    const userRole = useSelector(state => state.auth.user?.role);
-    const userId = useSelector(state => state.auth.user?.id);
-
-    const fetchBlogs = async () => {
+    const fetchUsers = async () => {
         const params = new URLSearchParams();
-        if (userRole !== "admin") {
-            params.append("user_id", userId);
-        }
+        params.append("role", "user");
 
-        const response = await appAxios.get("/articles.php?" + params.toString());
+        const response = await appAxios.get("/get_users.php?" + params.toString());
 
         if (response.data.success) {
-            setBlogList(response.data.data);
+            setUserList(response.data.data);
         } else {
             setError(response.data.message || 'Veri alınamadı.');
         }
     };
-
-    const fetchCategories = async () => {
-        const params = new URLSearchParams();
-        const response = await appAxios.get("/get_categories.php");
-
-        if (response.data.success) {
-            setCategoryList(response.data.data.map(x => ({ label: x.name, value: parseInt(x.id) })));
-        } else {
-            setError(response.data.message || 'Veri alınamadı.');
-        }
-    };
-
-    const fetchTags = async () => {
-        const response = await appAxios.get("/get_tags.php");
-
-        if (response.data.success) {
-            setTagList(response.data.data.map(x => ({ label: x.name, value: parseInt(x.id) })));
-        } else {
-            setError(response.data.message || 'Veri alınamadı.');
-        }
-    };
-
 
     useEffect(() => {
-        Promise.all([fetchBlogs(), fetchTags(), fetchCategories()])
+        Promise.all([fetchUsers()])
     }, []);
 
     const itemsPerPage = 5;
@@ -86,53 +52,85 @@ const Blog = () => {
 
     const [show1, setShow1] = useState(false);
     const handleClose1 = () => {
+        setUpdateId("")
+        setUpdateName("")
+        setUpdateEmail("")
+        setUpdatePhone("")
+        setUpdateBirthDate("")
         setShow1(false)
     };
     const handleShow1 = (item) => {
         setUpdateId(item.id)
-        setUpdateTitle(item.title)
-        setUpdateSubTitle(item.subtitle)
-        setUpdateContent(item.content)
-        setUpdateImageUrl(item.image_url)
-        setUpdateCategoryId(categoryList.find(x => x.value === item.category_id))
-        setUpdateTagIds(item.tags.map(x => ({ label: x.name, value: parseInt(x.id) })));
+        setUpdateName(item.name)
+        setUpdateEmail(item.email)
+        setUpdatePhone(item.phone)
+        setUpdateBirthDate(item.birth_date)
         setShow1(true)
     };
 
-    const filteredBlogs = blogList.filter((blog) =>
-        blog.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        blog.subtitle.toLowerCase().includes(searchQuery.toLowerCase())
+    const [show2, setShow2] = useState(false);
+    const handleClose2 = () => setShow2(false);
+    const handleShow2 = () => setShow2(true);
+
+    const filteredUsers = userList.filter((user) =>
+        user.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-
-    const handleSaveBlog = async () => {
-        if (!title || !subTitle || !content || !categoryId) {
+    const handleSaveUser = async () => {
+        if (!name || !email || !phone || !birthDate || !password) {
             toast.error("Tüm alanları doldurun!");
             return;
         }
 
         const params = new URLSearchParams();
-        params.append("user_id", userId);
-        params.append("title", title);
-        params.append("subtitle", subTitle);
-        params.append("content", content);
-        params.append("image_url", imageUrl);
-        params.append("category_id", categoryId.value);
-        params.append("tagIds", JSON.stringify(tagIds.map(x => x.value)));
+        params.append("name", name);
+        params.append("email", email);
+        params.append("phone", phone);
+        params.append("birth_date", birthDate);
+        params.append("password", password);
+        params.append("role", "user");
+        params.append("is_verified", "1");
 
-        const response = await appAxios.post("/create_articles.php", params.toString());
+        const response = await appAxios.post("/create_user.php", params.toString());
 
         if (response.data.success) {
-            toast.success("Blog başarıyla eklendi!");
-            fetchBlogs();
+            toast.success("Kullanıcı başarıyla eklendi!");
+            fetchUsers();
             handleClose();
-            setTitle(''); setSubTitle(''); setContent(''); setImageUrl(''); setCategoryId(''); setTagIds([]);
+            setName(''); setEmail(''); setPhone(''); setBirthDate(''); setPassword('');
         } else {
             toast.error(response.data.message || "Kayıt sırasında hata oluştu.");
         }
     };
 
-    const handleDeleteBlog = async (id) => {
+    const handleSaveAdmin = async () => {
+        if (!name || !email || !phone || !birthDate || !password) {
+            toast.error("Tüm alanları doldurun!");
+            return;
+        }
+
+        const params = new URLSearchParams();
+        params.append("name", name);
+        params.append("email", email);
+        params.append("phone", phone);
+        params.append("birth_date", birthDate);
+        params.append("password", password);
+        params.append("role", "admin");
+        params.append("is_verified", "1");
+
+        const response = await appAxios.post("/create_user.php", params.toString());
+
+        if (response.data.success) {
+            toast.success("Admin başarıyla eklendi!");
+            handleClose2();
+            setName(''); setEmail(''); setPhone(''); setBirthDate(''); setPassword('');
+        } else {
+            toast.error(response.data.message || "Kayıt sırasında hata oluştu.");
+        }
+    };
+
+    const handleDeleteUser = async (id) => {
+
         Swal.fire({
             title: "Emin misin?",
             text: "Bu kaydı silmek istiyor musun?",
@@ -147,11 +145,11 @@ const Blog = () => {
                 const params = new URLSearchParams();
                 params.append("id", id);
 
-                const response = await appAxios.post("/delete_articles.php", params.toString());
+                const response = await appAxios.post("/delete_user.php", params.toString());
 
                 if (response.data.success) {
-                    toast.success("Blog başarıyla silindi!");
-                    fetchBlogs();
+                    toast.success("Kullanıcı başarıyla silindi!");
+                    fetchUsers();
                 } else {
                     toast.error(response.data.message || "Silme işlemi başarısız.");
                 }
@@ -161,26 +159,24 @@ const Blog = () => {
 
     };
 
-    const handleUpdateBlog = async () => {
-        if (!updateTitle || !updateSubTitle || !updateContent ||  !updateCategoryId) {
+    const handleUpdateUser = async () => {
+        if (!updateName || !updateEmail || !updatePhone) {
             toast.error("Tüm alanları doldurun!");
             return;
         }
 
         const params = new URLSearchParams();
         params.append("id", updateId);
-        params.append("title", updateTitle);
-        params.append("subtitle", updateSubTitle);
-        params.append("content", updateContent);
-        params.append("image_url", updateImageUrl);
-        params.append("category_id", updateCategoryId.value);
-        params.append("tagIds", JSON.stringify(updateTagIds.map(x => x.value)));
+        params.append("name", updateName);
+        params.append("email", updateEmail);
+        params.append("phone", updatePhone);
+        params.append("birth_date", updateBirthDate);
 
-        const response = await appAxios.post("/update_articles.php", params.toString());
+        const response = await appAxios.post("/update_user.php", params.toString());
 
         if (response.data.success) {
-            toast.success("Blog başarıyla güncellendi!");
-            fetchBlogs();
+            toast.success("Kullanıcı başarıyla güncellendi!");
+            fetchUsers();
             handleClose1();
         } else {
             toast.error(response.data.message || "Kayıt sırasında hata oluştu.");
@@ -188,7 +184,7 @@ const Blog = () => {
     };
 
 
-    const currentBlogItems = filteredBlogs.slice(startPage, startPage + itemsPerPage);
+    const currentUserItems = filteredUsers.slice(startPage, startPage + itemsPerPage);
     return (
         <>
             <Row>
@@ -198,15 +194,27 @@ const Blog = () => {
                             <div className="card-header">
                                 <Row className="align-items-center gy-3">
                                     <Col md="4" lg="6" className="text-md-start">
-                                        <h4>Bloglar</h4>
+                                        <h4>Kullanıcılar</h4>
                                     </Col>
                                     <Col md="8" lg="6" className="text-md-end">
                                         <div className="">
-                                            <Nav as="ul" id="blog-table-tab" role="tablist" className="nav nav-tabs d-inline-flex align-items-center gap-3 flex-wrap mb-0 px-0">
+                                            <Nav as="ul" id="User-table-tab" role="tablist" className="nav nav-tabs d-inline-flex align-items-center gap-3 flex-wrap mb-0 px-0">
                                                 <li>
                                                     <Button variant="primary" onClick={handleShow}>
                                                         <span className="btn-inner">
-                                                            <span className="text d-inline-block align-middle">Blog Ekle</span>{" "}
+                                                            <span className="text d-inline-block align-middle">Kullanıcı Ekle</span>{" "}
+                                                            <span className="icon d-inline-block align-middle ms-1 ps-2">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 8 8" fill="none">
+                                                                    <path
+                                                                        d="M7.32046 4.70834H4.74952V7.25698C4.74952 7.66734 4.41395 8 4 8C3.58605 8 3.25048 7.66734 3.25048 7.25698V4.70834H0.679545C0.293423 4.6687 0 4.34614 0 3.96132C0 3.5765 0.293423 3.25394 0.679545 3.21431H3.24242V0.673653C3.28241 0.290878 3.60778 0 3.99597 0C4.38416 0 4.70954 0.290878 4.74952 0.673653V3.21431H7.32046C7.70658 3.25394 8 3.5765 8 3.96132C8 4.34614 7.70658 4.6687 7.32046 4.70834Z"
+                                                                        fill="currentColor" />
+                                                                </svg>
+                                                            </span>
+                                                        </span>
+                                                    </Button>
+                                                    <Button variant="primary ms-3" onClick={handleShow2}>
+                                                        <span className="btn-inner">
+                                                            <span className="text d-inline-block align-middle">Admin Ekle</span>{" "}
                                                             <span className="icon d-inline-block align-middle ms-1 ps-2">
                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 8 8" fill="none">
                                                                     <path
@@ -223,7 +231,7 @@ const Blog = () => {
                                 </Row>
                                 <Form.Control
                                     type="text"
-                                    placeholder="Blog Ara"
+                                    placeholder="Kullanıcı Ara"
                                     value={searchQuery}
                                     onChange={(e) => {
                                         setSearchQuery(e.target.value);
@@ -238,20 +246,20 @@ const Blog = () => {
                                     <Table className="table border-end border-start align-middle rounded">
                                         <thead className="table-dark">
                                             <tr>
-                                                <th scope="col">Başlık</th>
-                                                <th scope="col">Alt Başlık</th>
-                                                <th scope="col">Kategori</th>
-                                                <th scope="col">Resim</th>
+                                                <th scope="col">İsim</th>
+                                                <th scope="col">Email</th>
+                                                <th scope="col">Telefon</th>
+                                                <th scope="col">Doğum Tarihi</th>
                                                 <th scope="col">Aksiyon</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {currentBlogItems.map((item, index) => (
+                                            {currentUserItems.map((item, index) => (
                                                 <tr data-item="list" key={index}>
-                                                    <td>{item.title}</td>
-                                                    <td>{item.subtitle}</td>
-                                                    <td>{categoryList.find(x => x.value === item.category_id)?.label || item.category_id}</td>
-                                                    <td><a href={item.image_url} target='blank'>Resim</a></td>
+                                                    <td>{item.name}</td>
+                                                    <td>{item.email}</td>
+                                                    <td>{item.phone}</td>
+                                                    <td>{item.birth_date}</td>
                                                     <td>
                                                         <a variant="" className="d-inline-block pe-2" onClick={() => handleShow1(item)}>
                                                             <span className="text-success">
@@ -270,7 +278,7 @@ const Blog = () => {
                                                                 </svg>
                                                             </span>
                                                         </a>{" "}
-                                                        <Link to="#" className="d-inline-block ps-2 delete-btn" onClick={() => handleDeleteBlog(item.id)}>
+                                                        <Link to="#" className="d-inline-block ps-2 delete-btn" onClick={() => handleDeleteUser(item.id)}>
                                                             <span className="text-danger">
                                                                 <svg width="15" height="16" viewBox="0 0 15 16" fill="none"
                                                                     xmlns="http://www.w3.org/2000/svg">
@@ -295,11 +303,11 @@ const Blog = () => {
                                     </Table>
                                 </div>
                                 <Pagination
-                                    totalItems={filteredBlogs.length}
+                                    totalItems={filteredUsers.length}
                                     itemsPerPage={itemsPerPage}
                                     currentPage={currentPage}
                                     onPageChange={(page) => {
-                                        if (page >= 1 && page <= Math.ceil(filteredBlogs.length / itemsPerPage)) {
+                                        if (page >= 1 && page <= Math.ceil(filteredUsers.length / itemsPerPage)) {
                                             setCurrentPage(page);
                                         }
                                     }}
@@ -311,52 +319,46 @@ const Blog = () => {
             </Row>
 
             <Modal
-                size="xl"
                 show={show}
                 onHide={handleClose}
                 backdrop="static"
                 keyboard={false}
             >
                 <Modal.Header closeButton>
-                    <Modal.Title>Blog Ekle</Modal.Title>
+                    <Modal.Title>Kullanıcı Ekle</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <div className="form-group col-md-12">
                         <Form.Group className="mb-3">
-                            <Form.Label>Başlık <span className="text-danger">*</span></Form.Label>
-                            <Form.Control type="text" className="form-control" onChange={(e) => setTitle(e.target.value)}></Form.Control>
+                            <Form.Label>İsim <span className="text-danger">*</span></Form.Label>
+                            <Form.Control type="text" className="form-control" onChange={(e) => setName(e.target.value)}></Form.Control>
                         </Form.Group>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>Alt Başlık <span className="text-danger">*</span></Form.Label>
-                            <Form.Control type="text" className="form-control" onChange={(e) => setSubTitle(e.target.value)}></Form.Control>
+                            <Form.Label>Email <span className="text-danger">*</span></Form.Label>
+                            <Form.Control type="text" className="form-control" onChange={(e) => setEmail(e.target.value)}></Form.Control>
                         </Form.Group>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>İçerik <span className="text-danger">*</span></Form.Label>
-                            <Editor value={content} onChange={setContent}></Editor>
+                            <Form.Label>Telefon <span className="text-danger">*</span></Form.Label>
+                            <Form.Control type="text" className="form-control" onChange={(e) => setPhone(e.target.value)}></Form.Control>
                         </Form.Group>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>Resim Linki <span className="text-danger">*</span></Form.Label>
-                            <Form.Control type="text" className="form-control" onChange={(e) => setImageUrl(e.target.value)}></Form.Control>
+                            <Form.Label>Doğum Tarihi <span className="text-danger">*</span></Form.Label>
+                            <Form.Control type="date" className="form-control" onChange={(e) => setBirthDate(e.target.value)}></Form.Control>
                         </Form.Group>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>Kategori <span className="text-danger">*</span></Form.Label>
-                            <Select options={categoryList} className="js-choice" select="one" onChange={(val) => setCategoryId(val)} />
-                        </Form.Group>
-
-                        <Form.Group className="mb-3">
-                            <Form.Label>Etiketler <span className="text-danger">*</span></Form.Label>
-                            <Select options={tagList} value={tagIds} isMulti className="js-choice" onChange={(val) => setTagIds(val)} />
+                            <Form.Label>Şifre (8 haneli olmalı) <span className="text-danger">*</span></Form.Label>
+                            <Form.Control type="password" className="form-control" onChange={(e) => setPassword(e.target.value)}></Form.Control>
                         </Form.Group>
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
                     <div className="offcanvas-footer">
                         <div className="d-grid d-md-flex gap-3 p-3">
-                            <Button type="submit" className="btn btn-primary d-block" onClick={handleSaveBlog}>
+                            <Button type="submit" className="btn btn-primary d-block" onClick={handleSaveUser}>
                                 <span className="btn-inner">
                                     <span className="text d-inline-block align-middle">Kaydet</span>{" "}
                                     <span className="icon d-inline-block align-middle ms-1 ps-2">
@@ -382,52 +384,41 @@ const Blog = () => {
             </Modal>
 
             <Modal
-                size="xl"
                 show={show1}
                 onHide={handleClose1}
                 backdrop="static"
                 keyboard={false}
             >
                 <Modal.Header closeButton>
-                    <Modal.Title>Blog Güncelle</Modal.Title>
+                    <Modal.Title>Kullanıcı Güncelle</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <div className="form-group col-md-12">
                         <Form.Group className="mb-3">
-                            <Form.Label>Başlık  <span className="text-danger">*</span></Form.Label>
-                            <Form.Control type="text" className="form-control" defaultValue={updateTitle} onChange={(e) => setUpdateTitle(e.target.value)}></Form.Control>
+                            <Form.Label>İsim <span className="text-danger">*</span></Form.Label>
+                            <Form.Control type="text" className="form-control" defaultValue={updateName} onChange={(e) => setUpdateName(e.target.value)}></Form.Control>
                         </Form.Group>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>Alt Başlık <span className="text-danger">*</span></Form.Label>
-                            <Form.Control type="text" className="form-control" defaultValue={updateSubTitle} onChange={(e) => setUpdateSubTitle(e.target.value)}></Form.Control>
+                            <Form.Label>Email <span className="text-danger">*</span></Form.Label>
+                            <Form.Control type="text" className="form-control" defaultValue={updateEmail} onChange={(e) => setUpdateEmail(e.target.value)}></Form.Control>
                         </Form.Group>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>İçerik <span className="text-danger">*</span></Form.Label>
-                            <Editor value={updateContent} onChange={setUpdateContent}></Editor>
+                            <Form.Label>Telefon <span className="text-danger">*</span></Form.Label>
+                            <Form.Control type="text" className="form-control" defaultValue={updatePhone} onChange={(e) => setUpdatePhone(e.target.value)}></Form.Control>
                         </Form.Group>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>Resim Linki <span className="text-danger">*</span></Form.Label>
-                            <Form.Control type="text" className="form-control" defaultValue={updateImageUrl} onChange={(e) => setUpdateImageUrl(e.target.value)}></Form.Control>
-                        </Form.Group>
-
-                        <Form.Group className="mb-3">
-                            <Form.Label>Kategori <span className="text-danger">*</span></Form.Label>
-                            <Select options={categoryList} value={updateCategoryId} className="js-choice" onChange={(val) => setUpdateCategoryId(val)} />
-                        </Form.Group>
-
-                        <Form.Group className="mb-3">
-                            <Form.Label>Etiketler <span className="text-danger">*</span></Form.Label>
-                            <Select options={tagList} value={updateTagIds} isMulti className="js-choice" onChange={(val) => setUpdateTagIds(val)} />
+                            <Form.Label>Doğum Tarihi <span className="text-danger">*</span></Form.Label>
+                            <Form.Control type="date" className="form-control" defaultValue={updateBirthDate} onChange={(e) => setUpdateBirthDate(e.target.value)}></Form.Control>
                         </Form.Group>
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
                     <div className="offcanvas-footer">
                         <div className="d-grid d-md-flex gap-3 p-3">
-                            <Button type="submit" className="btn btn-primary d-block" onClick={handleUpdateBlog}>
+                            <Button type="submit" className="btn btn-primary d-block" onClick={handleUpdateUser}>
                                 <span className="btn-inner">
                                     <span className="text d-inline-block align-middle">Güncelle</span>{" "}
                                     <span className="icon d-inline-block align-middle ms-1 ps-2">
@@ -451,8 +442,73 @@ const Blog = () => {
                     </div>
                 </Modal.Footer>
             </Modal>
+
+            <Modal
+                show={show2}
+                onHide={handleClose2}
+                backdrop="static"
+                keyboard={false}
+            >
+                <Modal.Header closeButton>
+                    <Modal.Title>Admin Ekle</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <div className="form-group col-md-12">
+                        <Form.Group className="mb-3">
+                            <Form.Label>İsim <span className="text-danger">*</span></Form.Label>
+                            <Form.Control type="text" className="form-control" onChange={(e) => setName(e.target.value)}></Form.Control>
+                        </Form.Group>
+
+                        <Form.Group className="mb-3">
+                            <Form.Label>Email <span className="text-danger">*</span></Form.Label>
+                            <Form.Control type="text" className="form-control" onChange={(e) => setEmail(e.target.value)}></Form.Control>
+                        </Form.Group>
+
+                        <Form.Group className="mb-3">
+                            <Form.Label>Telefon <span className="text-danger">*</span></Form.Label>
+                            <Form.Control type="text" className="form-control" onChange={(e) => setPhone(e.target.value)}></Form.Control>
+                        </Form.Group>
+
+                        <Form.Group className="mb-3">
+                            <Form.Label>Doğum Tarihi <span className="text-danger">*</span></Form.Label>
+                            <Form.Control type="date" className="form-control" onChange={(e) => setBirthDate(e.target.value)}></Form.Control>
+                        </Form.Group>
+
+                        <Form.Group className="mb-3">
+                            <Form.Label>Şifre (8 haneli olmalı) <span className="text-danger">*</span></Form.Label>
+                            <Form.Control type="password" className="form-control" onChange={(e) => setPassword(e.target.value)}></Form.Control>
+                        </Form.Group>
+                    </div>
+                </Modal.Body>
+                <Modal.Footer>
+                    <div className="offcanvas-footer">
+                        <div className="d-grid d-md-flex gap-3 p-3">
+                            <Button type="submit" className="btn btn-primary d-block" onClick={handleSaveAdmin}>
+                                <span className="btn-inner">
+                                    <span className="text d-inline-block align-middle">Kaydet</span>{" "}
+                                    <span className="icon d-inline-block align-middle ms-1 ps-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 8 8" fill="none">
+                                            <path d="M7.32046 4.70834H4.74952V7.25698C4.74952 7.66734 4.41395 8 4 8C3.58605 8 3.25048 7.66734 3.25048 7.25698V4.70834H0.679545C0.293423 4.6687 0 4.34614 0 3.96132C0 3.5765 0.293423 3.25394 0.679545 3.21431H3.24242V0.673653C3.28241 0.290878 3.60778 0 3.99597 0C4.38416 0 4.70954 0.290878 4.74952 0.673653V3.21431H7.32046C7.70658 3.25394 8 3.5765 8 3.96132C8 4.34614 7.70658 4.6687 7.32046 4.70834Z" fill="currentColor" />
+                                        </svg>
+                                    </span>
+                                </span>
+                            </Button>
+                            <Button className="btn btn-secondary d-block" type="button" aria-label="Close" onClick={handleClose2}>
+                                <span className="btn-inner">
+                                    <span className="text d-inline-block align-middle">Kapat</span>{" "}
+                                    <span className="icon d-inline-block align-middle ms-1 ps-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 8 8" fill="none">
+                                            <path d="M7.32046 4.70834H4.74952V7.25698C4.74952 7.66734 4.41395 8 4 8C3.58605 8 3.25048 7.66734 3.25048 7.25698V4.70834H0.679545C0.293423 4.6687 0 4.34614 0 3.96132C0 3.5765 0.293423 3.25394 0.679545 3.21431H3.24242V0.673653C3.28241 0.290878 3.60778 0 3.99597 0C4.38416 0 4.70954 0.290878 4.74952 0.673653V3.21431H7.32046C7.70658 3.25394 8 3.5765 8 3.96132C8 4.34614 7.70658 4.6687 7.32046 4.70834Z" fill="currentColor" />
+                                        </svg>
+                                    </span>
+                                </span>
+                            </Button>
+                        </div>
+                    </div>
+                </Modal.Footer>
+            </Modal>
         </>
     )
 }
 
-export default Blog
+export default User

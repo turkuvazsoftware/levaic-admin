@@ -1,20 +1,18 @@
 import * as storage from "../../utilities/storage"
 
-export const login = ({ user, token }) => {
+export const login = ({ user }) => {
   return (dispatch) => {
-    storage.setItem('token', token);
     storage.setItem('user', JSON.stringify(user));
 
     dispatch({
       type: 'login',
-      payload: { user, token },
+      payload: { user },
     });
   };
 };
 
 export const logout = () => {
   return (dispatch) => {
-    storage.removeItem('token');
     storage.removeItem('user');
 
     dispatch({
@@ -23,20 +21,30 @@ export const logout = () => {
   };
 };
 
+export const updateUser = (updatedUser) => {
+  return (dispatch, getState) => {
+    storage.setItem('user', JSON.stringify(updatedUser));
+
+    dispatch({
+      type: 'updateUser',
+      payload: { user: updatedUser },
+    });
+  };
+};
+
+
 export const initAuthFromLocalStorage = () => {
   return (dispatch) => {
-    const token = storage.getItem('token');
     const userStr = storage.getItem('user');
 
-    if (token && userStr) {
+    if (userStr) {
       try {
         const user = JSON.parse(userStr);
         dispatch({
           type: 'login',
-          payload: { user, token },
+          payload: { user },
         });
       } catch (error) {
-        storage.removeItem('token');
         storage.removeItem('user');
         dispatch({
           type: 'logout',

@@ -22,11 +22,9 @@ import { IndexRouter } from './router/indexRouter';
 const router = createHashRouter([...IndexRouter]);
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
     <Provider store={store}>
       <App> 
         <RouterProvider router={router}></RouterProvider>
       </App>
-    </Provider>
-  </React.StrictMode>,
+    </Provider>,
 )
